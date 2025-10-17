@@ -8,6 +8,8 @@ Simple Demo of FireGuard integrated with an OpenAI assistant (Python) through a 
 - **FireGuard Integration**: Connected to FireGuard input and output guardrails
 - **Conversation History**: Maintains message history throughout the session
 
+## Documentation
+Here is the documentation of FireGuard: https://doc.fireraven.ai/
 
 ## Installation
 
