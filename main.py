@@ -6,7 +6,8 @@ Main file for FireGuard demo using OpenAI API with a command-line interaction.
 import os
 import sys
 from dotenv import load_dotenv
-from openai_client import OpenAIClient
+# from openai_client import OpenAIClient
+from openai_client_v2 import OpenAIClient
 
 # Load environment variables from .env file
 load_dotenv()
