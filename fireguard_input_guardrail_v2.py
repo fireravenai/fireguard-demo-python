@@ -84,6 +84,8 @@ def check_input_guardrail_v2(conversation_id: str, messages: List[Dict[str, str]
 
         # Parse response data
         input_guardrails_data = response.json()
+
+        print('Input Guardrails Response:', input_guardrails_data)
         
         # print('Input Guardrails Response:', input_guardrails_data)
         # Response format:

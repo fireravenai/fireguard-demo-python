@@ -29,6 +29,8 @@ def check_output_guardrail_v2(conversation_id: str, input_id: str, output: str) 
     Raises:
         Exception: If API request fails
     """
+
+    print(output)
     
     try:
         response = requests.post(
@@ -64,6 +66,9 @@ def check_output_guardrail_v2(conversation_id: str, input_id: str, output: str) 
 
         # Parse response data
         output_guardrails_data = response.json()
+        
+        print('Output Guardrails Response:', output_guardrails_data['output_request'])
+        print('Output Guardrails Response:', output_guardrails_data['policies_guardrail_results'])
 
         # print('Output Guardrails Response:', output_guardrails_data)
         # Response format:

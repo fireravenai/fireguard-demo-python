@@ -34,9 +34,9 @@ Here is the documentation of FireGuard: https://doc.fireraven.ai/
 - Save the API Key
 - Go to `Projects` and click on `Add Project`
 ![Add project](images/image.png)
-- Go to your project and in the tab `General` scroll at the bottom to find your `Client ID` (which is the ID of your project)
+- Go to your project and in the tab `General` scroll at the bottom to find your `Project ID`
 ![Project settings page](images/image-2.png)
-- Save the Client ID
+- Save the Project ID
 
 
 5. **Set up your API keys**:
@@ -47,7 +47,7 @@ Here is the documentation of FireGuard: https://doc.fireraven.ai/
    OPENAI_API_KEY=your_openai_api_key_here
    
    # FireGuard API Configuration
-   FIRERAVEN_CHATBOT_CLIENT_ID=your_client_id
+   FIRERAVEN_PROJECT_ID=your_project_id
    FIRERAVEN_GUARDRAILS_API_KEY=your_fireraven_api_key
    ```
 
@@ -85,7 +85,7 @@ To exit the program, type `quit`, `exit`, or `bye`.
 - Python 3.7+
 - OpenAI API key
 - Fireraven API key
-- Fireraven Client ID
+- Fireraven Project ID
 
 ## Dependencies
 
