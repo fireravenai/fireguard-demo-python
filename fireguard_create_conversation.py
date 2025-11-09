@@ -28,7 +28,7 @@ def create_conversation(name: str = None, description: str = None) -> str:
     """
     
     # Construct the URL
-    url = f"https://api.fireraven.ai/public/conversations?clientId={os.getenv("FIRERAVEN_CHATBOT_CLIENT_ID")}"
+    url = f"https://api.fireraven.ai/public/fireguard/v1.1/conversation?project_id={os.getenv("FIRERAVEN_PROJECT_ID")}"
     
     try:
         # Make the API request
@@ -55,8 +55,8 @@ def create_conversation(name: str = None, description: str = None) -> str:
         #     id: '00000000-0000-0000-0000-000000000000',
         #     name: '',
         #     description: '',
-        #     createdAt: '0000-00-00T00:00:00.000Z',
-        #     isClient: true
+        #     created_at: '0000-00-00T00:00:00.000Z',
+        #     is_client: true
         # }
         
         if not conversation_id:

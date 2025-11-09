@@ -6,7 +6,6 @@ This module provides a function to check output messages using the Fireraven gua
 
 import os
 import requests
-import time
 from typing import Dict, Any
 from dotenv import load_dotenv
 
@@ -32,16 +31,31 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
     
     try:
         response = requests.post(
-            f"https://api.fireraven.ai/public/safeguard/output?conversationId={conversation_id}",
+            f"https://api.fireraven.ai/public/fireguard/v1.1/output_guardrails?conversation_id={conversation_id}",
             headers={
                 'X-Api-Key': os.getenv("FIRERAVEN_GUARDRAILS_API_KEY"),
                 'Content-Type': 'application/json'
             },
             json={
-                'inputId': input_id,
-                'output': output
+                'input_id': input_id,
+                'output': output,
+                "guardrails": [
+                    {
+                        "type": "policies_guardrail"
+                    }
+                ]
             }
         )
+        # Request format
+        # {
+        #     "input_id": "00000000-0000-0000-0000-000000000000",
+        #     "output": "The weather forecast is 24C with a mix of sun and cloud for the day.",
+        #     "guardrails": [
+        #         {
+        #             "type": "policies_guardrail"
+        #         }
+        #     ]
+        # }
         
         # Check if request was successful
         if not response.ok:
@@ -49,53 +63,63 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
 
         # Parse response data
         output_guardrails_data = response.json()
-        
-        return output_guardrails_data
-        
-        # Response data format:
+
+        # print('Output Guardrails Response:', output_guardrails_data)
+
+        # Response format:
         # {
-        #   id: '00000000-0000-0000-0000-000000000000,
-        #   inputMessage: {
-        #     id: '00000000-0000-0000-0000-000000000000',
-        #     direction: 'Outgoing',
-        #     status: 'Saved',
-        #     content: {
-        #       text: 'original user message text',
-        #       processed: 'message with context from previous messages'
-        #     }
-        #   },
-        #   outputMessage: {
-        #     id: '00000000-0000-0000-0000-000000000000',
-        #     direction: 'Incoming',
-        #     status: 'Saved',
-        #     content: {
-        #       text: 'original assistant message text',
-        #       processed: null
-        #     }
-        #   },
-        #   metricResults: [
-        #     {
-        #       metric: {
-        #         id: '00000000-0000-0000-0000-000000000000',
-        #         name: 'Policy 1',
-        #         description: 'Policy description',
-        #         criticality: 'CRITICAL',
-        #         detectionThreshold: 0.1,
-        #         detectionIsAboveThreshold: true,
-        #         isDefault: false,
-        #         isArchived: false,
-        #         createdAt: '0000-00-00T00:00:00.000Z',
-        #         updatedAt: '0000-00-00T00:00:00.000Z',
-        #         archivedAt: null
-        #       },
-        #       status: 'SUCCESS',
-        #       value: 0.9546173468312323,
-        #       isIssue: true
+        #     "output_request": {
+        #         "id": "string",
+        #         "role": "user",
+        #         "content": {
+        #             "text": "string"
+        #         }
         #     },
-        #     ...
-        #   ],
-        #   createdAt: '0000-00-00T00:00:00.000Z'
+        #     "policies_guardrail_results": {
+        #         "policies": [
+        #             {
+        #                 "id": "string",
+        #                 "name": "string",
+        #                 "description": "string",
+        #                 "criticality": "LOW",
+        #                 "detection_threshold": 0,
+        #                 "detection_is_above_threshold": true,
+        #                 "is_default": true,
+        #                 "is_archived": true,
+        #                 "created_at": "string",
+        #                 "updated_at": "string",
+        #                 "archived_at": "string",
+        #                 "status": "success",
+        #                 "value": 0,
+        #                 "is_safe": true
+        #             }
+        #         ],
+        #         "is_safe": true,
+        #         "timestamp": "string"
+        #     }
         # }
+
+        # Check if any policy results indicate blocking (in this case, only for criticality HIGH or CRITICAL)
+        criticality_levels_to_block = ['critical', 'high']
+        policies_guardrail_is_safe = True
+        # Check if policies_guardrail_results exist
+        if output_guardrails_data['policies_guardrail_results']:
+            # If any policy result has criticality in the block list and is_safe is false, then the response is blocked
+            for policy_result in output_guardrails_data['policies_guardrail_results']['policies']:
+                criticality = policy_result['criticality']
+                is_safe = policy_result['is_safe']
+                if not is_safe and criticality in criticality_levels_to_block:
+                    policies_guardrail_is_safe = False
+                    break
+        
+        # Create a reponse object for convenience (could contain more fields if needed)
+        output_guardrails_response = {
+            # Check if the policies guardrail marked the input as safe
+            "is_safe": policies_guardrail_is_safe
+        }
+        
+        return output_guardrails_response
+
         
     except requests.exceptions.RequestException as e:
         raise Exception(f"Request failed: {str(e)}")

@@ -6,7 +6,6 @@ This module provides a function to check input messages using the Fireraven guar
 
 import os
 import requests
-import time
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 
@@ -28,48 +27,54 @@ def check_input_guardrail(conversation_id: str, messages: List[Dict[str, str]]) 
     Raises:
         Exception: If API request fails
     """
-    # Construct the messages array for the Guardrails API
-    api_messages = []
-    
-    # Add conversation messages
-    for msg in messages:
-        api_messages.append({
-            # Need to convert role "assistant" to "system" for the FireGuard API (this will be fixed shortly to have the same format of roles as OpenAI API)
-            'role': 'system' if msg['role'] == 'assistant' else msg['role'],
-            'content': msg['content']
-        })
-    
-    # Map to message history format
-    message_history = [
-        {
-            'role': msg['role'],
-            'content': msg['content']
-        }
-        for msg in api_messages
-    ]
     
     try:
         response = requests.post(
-            f"https://api.fireraven.ai/public/safeguard/input?conversationId={conversation_id}",
+            f"https://api.fireraven.ai/public/fireguard/v1.1/input_guardrails?conversation_id={conversation_id}",
             headers={
                 'X-Api-Key': os.getenv("FIRERAVEN_GUARDRAILS_API_KEY"),
                 'Content-Type': 'application/json'
             },
             json={
-                'messageHistory': message_history
-                # Format of messageHistory:
-                # [
-                #   {
-                #     sender: 'user',
-                #     text: 'What is the opening hours of your business?'
-                #   },
-                #   {
-                #     sender: 'system',
-                #     text: 'Our business is open between ...'
-                #   },
-                #   ...
-                # ]
+                'messages_history': messages,
+                'guardrails': [
+                    {
+                        "type": "topics_guardrail"
+                    },
+                    {
+                        "type": "policies_guardrail"
+                    }
+                ]
             }
+            # Request format
+            # {
+            #     "messages_history": [
+            #         {
+            #             "role": "system",
+            #             "content": "You are a helpful agent"
+            #         },
+            #         {
+            #             "role": "user",
+            #             "content": "What is the weather today?"
+            #         },
+            #         {
+            #             "role": "assistant",
+            #             "content": "The weather is 30"
+            #         },
+            #         {
+            #             "role": "user",
+            #             "content": "And what about tomorrow?"
+            #         }
+            #     ],
+            #     "guardrails": [
+            #         {
+            #             "type": "topics_guardrail"
+            #         },
+            #         {
+            #             "type": "policies_guardrail"
+            #         }
+            #     ]
+            # } 
         )
 
         # Check if request was successful
@@ -80,49 +85,90 @@ def check_input_guardrail(conversation_id: str, messages: List[Dict[str, str]]) 
         input_guardrails_data = response.json()
         
         # print('Input Guardrails Response:', input_guardrails_data)
-        
-        # Save the input ID (will be useful to call the Output Guardrails)
-        input_id = input_guardrails_data['original']['id']
-        
-        # Add input_id to response for convenience
-        input_guardrails_data['input_id'] = input_id
-        
-        return input_guardrails_data
-        
-        # Response data format:
+
+        # Response format:
         # {
-        #   original: {
-        #     id: '00000000-0000-0000-0000-000000000000',
-        #     direction: 'Outgoing',
-        #     status: 'Saved',
-        #     content: {
-        #       text: 'original message text',
-        #       processed: 'message with context from previous messages'
-        #     }
-        #   },
-        #   summarized: 'message with context from previous messages',
-        #   result: [
-        #     {
-        #       topic: 'topic 1',
-        #       state: 'safe',
-        #       sentences: [
-        #         {
-        #           id: '00000000-0000-0000-0000-000000000000',
-        #           text: 'question 1',
-        #           similarity: 0.9323082436085025
-        #         },
-        #         {
-        #           id: '00000000-0000-0000-0000-000000000000',
-        #           text: 'question 2',
-        #           similarity: 0.7412767018361224
-        #         },
-        #         ...
-        #       ]
+        #     "input_request": {
+        #         "id": "string",
+        #         "role": "user",
+        #         "content": {
+        #             "text": "string",
+        #             "processed": "string"
+        #         }
         #     },
-        #     ...
-        #   ],
-        #   allowed: true
+        #     "topics_guardrail_results": {
+        #         "topics": [
+        #             {
+        #                 "id": "string",
+        #                 "topic_name": "string",
+        #                 "state": "safe",
+        #                 "similarity": 0,
+        #                 "topic_sentences": [
+        #                     {
+        #                         "id": "string",
+        #                         "text": "string",
+        #                         "similarity": 0,
+        #                         "created_at": "string",
+        #                         "updated_at": "string"
+        #                     }
+        #                 ],
+        #                 "created_at": "string",
+        #                 "updated_at": "string"
+        #             }
+        #         ],
+        #         "is_safe": true,
+        #         "timestamp": "string"
+        #     },
+        #     "policies_guardrail_results": {
+        #         "policies": [
+        #             {
+        #                 "id": "string",
+        #                 "name": "string",
+        #                 "description": "string",
+        #                 "criticality": "LOW",
+        #                 "detection_threshold": 0,
+        #                 "detection_is_above_threshold": true,
+        #                 "is_default": true,
+        #                 "is_archived": true,
+        #                 "created_at": "string",
+        #                 "updated_at": "string",
+        #                 "archived_at": "string",
+        #                 "status": "success",
+        #                 "value": 0,
+        #                 "is_safe": true
+        #             }
+        #         ],
+        #         "is_safe": true,
+        #         "timestamp": "string"
+        #     }
         # }
+
+        # Check if any policy results indicate blocking (in this case, only for criticality HIGH or CRITICAL)
+        criticality_levels_to_block = ['CRITICAL', 'HIGH']
+        policies_guardrail_is_safe = True
+        topics_guardrail_is_safe = True
+        # Check if policies_guardrail_results exist
+        if input_guardrails_data['policies_guardrail_results']:
+            # If any policy result has criticality in the block list and is_safe is false, then the request is blocked
+            for policy_result in input_guardrails_data['policies_guardrail_results']['policies']:
+                criticality = policy_result['criticality']
+                is_safe = policy_result['is_safe']
+                if not is_safe and criticality in criticality_levels_to_block:
+                    policies_guardrail_is_safe = False
+                    break
+        # Check if topics_guardrail_results exist
+        if input_guardrails_data['topics_guardrail_results']:
+            topics_guardrail_is_safe = input_guardrails_data['topics_guardrail_results']['is_safe']
+        
+        # Create a reponse object for convenience (could contain more fields if needed)
+        input_guardrails_response = {
+            # Save the input ID (will be useful to call the Output Guardrails)
+            "input_id": input_guardrails_data['input_request']['id'],
+            # Check if the topics guardrail and policies guardrail both marked the input as safe
+            "is_safe": topics_guardrail_is_safe and policies_guardrail_is_safe
+        }
+        
+        return input_guardrails_response
         
     except requests.exceptions.RequestException as e:
         raise Exception(f"Request failed: {str(e)}")

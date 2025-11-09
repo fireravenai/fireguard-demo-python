@@ -1,6 +1,5 @@
 import openai
-import os
-from typing import List, Dict, Any
+from typing import List, Dict
 from dotenv import load_dotenv
 from fireguard_create_conversation import create_conversation
 from fireguard_input_guardrail import check_input_guardrail
@@ -62,13 +61,13 @@ class OpenAIClient:
         """
 
         # Input Guardrail
-        input_guardrails_data = check_input_guardrail(
+        input_guardrails_response = check_input_guardrail(
             self.conversation_id,
             self.messages + [{"role": "user", "content": user_input}]
         )
 
         # If input is blocked by guardrails, return a message
-        if not input_guardrails_data.get("allowed", True):
+        if not input_guardrails_response.get("is_safe", True):
             return "Input blocked by input guardrail."
 
         try:
@@ -85,28 +84,15 @@ class OpenAIClient:
             assistant_response = response.output_text
 
             # Output Guardrail
-            apology_message = "Sorry, I can't answer your request as it goes against my policies."
-            # Configure criticality levels to block
-            criticality_levels_to_block = ['CRITICAL', 'HIGH']
-
-            output_guardrails_data = check_output_guardrail(
+            output_guardrails_response = check_output_guardrail(
                 self.conversation_id,
-                input_guardrails_data.get('input_id'),
+                input_guardrails_response.get('input_id'),
                 assistant_response
             )
-
-            # Check if any metric results indicate blocking
-            # If any metric result has criticality in the block list and isIssue is true, block the response
-            should_block = False
-            for metric_result in output_guardrails_data.get('metricResults', []):
-                metric = metric_result.get('metric', {}) or {}
-                criticality = metric.get('criticality')
-                is_issue = metric_result.get('isIssue') is True
-                if criticality in criticality_levels_to_block and is_issue:
-                    should_block = True
-                    break
-
-            if should_block:
+            
+            # If output is blocked by guardrails, return a message
+            if not output_guardrails_response.get("is_safe", True):
+                apology_message = "Sorry, I can't answer your request as it goes against my policies."
                 self.add_message("assistant", apology_message)
                 return apology_message
 
