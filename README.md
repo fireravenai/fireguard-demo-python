@@ -123,9 +123,25 @@ python main.py
 
 ### How to Use
 
-Once the application is running, simply type your message and press Enter to chat with the AI. The conversation history is maintained throughout the session.
+- Once the application is running, simply type your message and press Enter to chat with the AI. The conversation history is maintained throughout the session.
 
-To exit the program, type `quit`, `exit`, or `bye`.
+- To exit the program, type `quit`, `exit`, or `bye`.
+
+- If you want to stop the Input Guardrail from blocking the input message while you are testing, you can simply comment the lines 69-71 in the `openai_client.py` file:
+```javascript=
+69        # If input is blocked by guardrails, return a message
+70        if not input_guardrails_response.get("is_safe", True):
+71            return "Input blocked by input guardrail."
+```
+
+- If you want to stop the Output Guardrail from blocking the response message while you are testing, you can simply comment the lines 93-97 in the `openai_client.py` file:
+```javascript=
+93            # If output is blocked by guardrails, return a message
+94            if not output_guardrails_response.get("is_safe", True):
+95                apology_message = "Sorry, I can't answer your request as it goes against my policies."
+96                self.add_message("assistant", apology_message)
+97                return apology_message
+```
 
 ## Project Structure
 

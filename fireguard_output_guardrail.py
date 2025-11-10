@@ -100,7 +100,7 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
         # }
 
         # Check if any policy results indicate blocking (in this case, only for criticality HIGH or CRITICAL)
-        criticality_levels_to_block = ['critical', 'high']
+        criticality_levels_to_block = ['CRITICAL', 'HIGH']
         policies_guardrail_is_safe = True
         # Check if policies_guardrail_results exist
         if output_guardrails_data['policies_guardrail_results']:
