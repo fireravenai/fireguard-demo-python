@@ -28,7 +28,7 @@ def create_conversation(name: str = None, description: str = None) -> str:
     """
     
     # Construct the URL
-    url = f"https://api.fireraven.ai/public/fireguard/v1.1/conversation?project_id={os.getenv("FIRERAVEN_PROJECT_ID")}"
+    url = f"https://api.fireraven.ai/public/fireguard/v1.1/conversation?project_id={os.getenv('FIRERAVEN_PROJECT_ID')}"
     
     try:
         # Make the API request
