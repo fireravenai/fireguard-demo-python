@@ -42,6 +42,9 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
                 "guardrails": [
                     {
                         "type": "policies_guardrail"
+                    },
+                    {
+                        "type": "security_guardrail"
                     }
                 ]
             }
@@ -51,6 +54,9 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
         #     "input_id": "00000000-0000-0000-0000-000000000000",
         #     "output": "The weather forecast is 24C with a mix of sun and cloud for the day.",
         #     "guardrails": [
+        #         {
+        #             "type": "security_guardrail"
+        #         },
         #         {
         #             "type": "policies_guardrail"
         #         }
@@ -64,7 +70,7 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
         # Parse response data
         output_guardrails_data = response.json()
 
-        # print('Output Guardrails Response:', output_guardrails_data)
+        print('Output Guardrails Response:', output_guardrails_data, "\n\n--\n\n")
 
         # Response format:
         # {
@@ -74,6 +80,11 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
         #         "content": {
         #             "text": "string"
         #         }
+        #     },
+        #     "security_guardrail_results": {
+        #         "value": 0,
+        #         "is_safe": true,
+        #         "timestamp": "string"
         #     },
         #     "policies_guardrail_results": {
         #         "policies": [
@@ -102,6 +113,7 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
         # Check if any policy results indicate blocking (in this case, only for criticality HIGH or CRITICAL)
         criticality_levels_to_block = ['CRITICAL', 'HIGH']
         policies_guardrail_is_safe = True
+        security_guardrail_is_safe = True
         # Check if policies_guardrail_results exist
         if output_guardrails_data['policies_guardrail_results']:
             # If any policy result has criticality in the block list and is_safe is false, then the response is blocked
@@ -111,11 +123,14 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
                 if not is_safe and criticality in criticality_levels_to_block:
                     policies_guardrail_is_safe = False
                     break
+        # Check if security_guardrail_results exist
+        if output_guardrails_data['security_guardrail_results']:
+            security_guardrail_is_safe = output_guardrails_data['security_guardrail_results']['is_safe']
         
         # Create a reponse object for convenience (could contain more fields if needed)
         output_guardrails_response = {
-            # Check if the policies guardrail marked the input as safe
-            "is_safe": policies_guardrail_is_safe
+            # Check if the security guardrail and policies guardrail both marked the output as safe
+            "is_safe": security_guardrail_is_safe and policies_guardrail_is_safe
         }
         
         return output_guardrails_response
