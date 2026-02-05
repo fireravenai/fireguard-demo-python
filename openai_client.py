@@ -68,7 +68,14 @@ class OpenAIClient:
 
         # If input is blocked by guardrails, return a message
         if not input_guardrails_response.get("is_safe", True):
-            return "Input blocked by input guardrail."
+            security_blocked = not input_guardrails_response.get("security_guardrail_is_safe", True)
+            policies_blocked = not input_guardrails_response.get("policies_guardrail_is_safe", True)
+            if security_blocked and policies_blocked:
+                return "Input blocked by security guardrail and policies guardrail."
+            elif security_blocked:
+                return "Input blocked by security guardrail."
+            else:
+                return "Input blocked by policies guardrail."
 
         try:
             # Add user message to history
@@ -92,7 +99,14 @@ class OpenAIClient:
             
             # If output is blocked by guardrails, return a message
             if not output_guardrails_response.get("is_safe", True):
-                apology_message = "Sorry, I can't answer your request as it goes against my policies."
+                security_blocked = not output_guardrails_response.get("security_guardrail_is_safe", True)
+                policies_blocked = not output_guardrails_response.get("policies_guardrail_is_safe", True)
+                if security_blocked and policies_blocked:
+                    apology_message = "Sorry, I can't answer your request (security guardrail and policies guardrail)."
+                elif security_blocked:
+                    apology_message = "Sorry, I can't answer your request (security guardrail)."
+                else:
+                    apology_message = "Sorry, I can't answer your request as it goes against my policies."
                 self.add_message("assistant", apology_message)
                 return apology_message
 

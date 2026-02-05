@@ -9,6 +9,8 @@ import requests
 from typing import Dict, Any
 from dotenv import load_dotenv
 
+from config import API_FIRERAVEN_URL
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -31,7 +33,7 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
     
     try:
         response = requests.post(
-            f"https://api.fireraven.ai/public/fireguard/v1.1/output_guardrails?conversation_id={conversation_id}",
+            f"{API_FIRERAVEN_URL}/public/fireguard/v1.1/output_guardrails?conversation_id={conversation_id}",
             headers={
                 'X-Api-Key': os.getenv("FIRERAVEN_GUARDRAILS_API_KEY"),
                 'Content-Type': 'application/json'
@@ -115,22 +117,26 @@ def check_output_guardrail(conversation_id: str, input_id: str, output: str) -> 
         policies_guardrail_is_safe = True
         security_guardrail_is_safe = True
         # Check if policies_guardrail_results exist
-        if output_guardrails_data['policies_guardrail_results']:
+        policies_results = output_guardrails_data.get('policies_guardrail_results')
+        if policies_results and policies_results.get('policies'):
             # If any policy result has criticality in the block list and is_safe is false, then the response is blocked
-            for policy_result in output_guardrails_data['policies_guardrail_results']['policies']:
+            for policy_result in policies_results['policies']:
                 criticality = policy_result['criticality']
                 is_safe = policy_result['is_safe']
                 if not is_safe and criticality in criticality_levels_to_block:
                     policies_guardrail_is_safe = False
                     break
         # Check if security_guardrail_results exist
-        if output_guardrails_data['security_guardrail_results']:
-            security_guardrail_is_safe = output_guardrails_data['security_guardrail_results']['is_safe']
+        security_results = output_guardrails_data.get('security_guardrail_results')
+        if security_results:
+            security_guardrail_is_safe = security_results.get('is_safe', True)
         
         # Create a reponse object for convenience (could contain more fields if needed)
         output_guardrails_response = {
             # Check if the security guardrail and policies guardrail both marked the output as safe
-            "is_safe": security_guardrail_is_safe and policies_guardrail_is_safe
+            "is_safe": security_guardrail_is_safe and policies_guardrail_is_safe,
+            "policies_guardrail_is_safe": policies_guardrail_is_safe,
+            "security_guardrail_is_safe": security_guardrail_is_safe
         }
         
         return output_guardrails_response

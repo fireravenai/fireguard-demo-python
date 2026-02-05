@@ -6,6 +6,7 @@ This module provides a function to create a new conversation using the Fireraven
 
 import os
 import requests
+from config import API_FIRERAVEN_URL
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -28,7 +29,7 @@ def create_conversation(name: str = None, description: str = None) -> str:
     """
     
     # Construct the URL
-    url = f"https://api.fireraven.ai/public/fireguard/v1.1/conversation?project_id={os.getenv('FIRERAVEN_PROJECT_ID')}"
+    url = f"{API_FIRERAVEN_URL}/public/fireguard/v1.1/conversation?project_id={os.getenv('FIRERAVEN_PROJECT_ID')}"
     
     try:
         # Make the API request
