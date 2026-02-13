@@ -52,7 +52,18 @@ Here is the documentation of FireGuard: https://doc.fireraven.ai/
    OPENAI_API_KEY=your_openai_api_key_here
    ```
 
-6. **Configure your FireGuard Topics Guardrail (Input Guardrail)**
+6. **Configure your FireGuard Security Guardrail (Input and Output Guardrails)**
+- Go to `Projects` on the left side menu and click on the `Settings` of the project you want to configure
+- Select the `Security Guardrail`
+
+![Security Guardrail configuration](images/image-11.png)
+
+- Configure if the security guardrail is applied to the Input and/or Output of the AI agent.
+- Configure the sensitivity of the security guardrail.
+   - Very restrictive will block more prompts (to block more prompts, potentially blocking some safe prompts that look malicious).
+   - Very permissive will block less prompts (to allow more prompts, even though some less malicious prompts can still be allowed).
+
+<!-- 6. **Configure your FireGuard Topics Guardrail (Input Guardrail)**
 - Go to `Projects` on the left side menu and click on the `Settings` of the project you want to configure
 - Select the `Topics Guardrail`
 ![Topics Guardrail configuration](images/image-4.png)
@@ -74,7 +85,7 @@ Here is the documentation of FireGuard: https://doc.fireraven.ai/
    - Safe/Unsafe: a toggle to configure if the topic is safe or unsafe
    - Sensitivity: a slider to configure how permissive or restrictive the topic should be (A more permissive setting allows requests that differ more from the original questions. A more restrictive setting blocks requests that aren’t sufficiently similar.)
    - Accuracy: the accuracy is measured as the percentage of Validation Questions (simulating real users) that can be answered from the list of Questions, with the Sensitivity configured
-- Once the configuration of the topic is done, click on `Save`
+- Once the configuration of the topic is done, click on `Save` -->
 
 
 7. **Configure your FireGuard Policies Guardrail (Input and Output Guardrails)**
@@ -101,7 +112,28 @@ Here is the documentation of FireGuard: https://doc.fireraven.ai/
 ![Configure policies for a project](images/image-9.png)
 
 
-8. **Monitor the project**
+8. **Configure the Topics analytics**
+- Go to the `Topics` on the left side menu
+![Topics page](images/image-12.png)
+- To create a new topic, click on the `Add Topic` button
+![Create new topic](images/image-13.png)
+- In the interface to configure a topic you can see multiple things:
+   - Name: The topic name should provide an immediate understanding of the topic at a glance.
+   - Description: This description is essential for our system to accurately identify when a message is related to the topic. The more precise the description, the more accurate the topic identification will be.
+   - Test your topic: To validate the topic identification directly from the configuration interface.
+- Once the topic is configured, you can click on `Create`
+- To add a topic to a project, you can click on the green icon at the bottom right of a topic
+
+![Add topic to project](images/image-14.png)
+- You can also add a topic from the Project configuration page:
+   - Go to `Projects` and click on the `Settings` of the project you want to configure
+   - Select the `Topics` tab
+   - Click on the field `Add topic to project` to search for a topic to add to the project
+- In the Project configuration page, you can also configure if the topics are to be applied to the Input or Output or both. For example, a topic only applied to the input will only be triggered if the input message (from the user, sent to the assistant) is related to the topic, but the topic won't look at the output message (from the assistant, back to the user).
+![Configure topics for a project](images/image-15.png)
+
+
+9. **Monitor the project**
 - Go to the `Monitoring` on the left side menu
 ![Monitoring page](images/image-10.png)
 - In the overview tab, you can see the issues detected related to the policies and the topics
